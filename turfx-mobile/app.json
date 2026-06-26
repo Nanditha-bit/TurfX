@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "TurfX",
+    "slug": "turfx-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.turfx.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "TurfX needs camera access to scan booking QR codes at venues.",
+        "NSMicrophoneUsageDescription": "Microphone access is not used by this app."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.turfx.app",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/logo.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "TurfX needs camera access to scan booking QR codes at venues."
+        }
+      ]
+    ]
+  }
+}

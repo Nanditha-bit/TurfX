@@ -1,0 +1,50 @@
+/* ── Global font — Plus Jakarta Sans (matches design reference) ───────────── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+/* Apply Plus Jakarta Sans to EVERYTHING — overrides every inline fontFamily */
+body,
+body * {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #161616;
+  background: #ffffff;
+}
+
+/* Nav links — weight 500, slightly off-white, exactly like screenshot */
+nav a, nav button, [role="navigation"] a {
+  font-weight: 500 !important;
+  letter-spacing: 0.01em;
+}
+
+/* User menu dropdown — matches "Bright Minds / My Profile / My Bookings" style */
+/* Bold name, regular items, red logout */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+input, textarea, select, button {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
