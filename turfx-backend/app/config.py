@@ -1,3 +1,4 @@
+
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 import os
@@ -30,7 +31,7 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASS: str = ""
-    EMAIL_FROM: str = "TurfX &lt;noreply@turfx.in&gt;"
+    EMAIL_FROM: str = "TurfX <noreply@turfx.in>"
 
     # CORS
     FRONTEND_URL: str = "http://localhost:3001"
@@ -44,7 +45,7 @@ class Settings(BaseSettings):
     ADMIN_PASSWORD: str = "admin@123"
 
     @property
-    def final_database_url(self) -&gt; str:
+    def final_database_url(self) -> str:
         if self.DATABASE_URL:
             return self.DATABASE_URL
         return (
@@ -53,12 +54,12 @@ class Settings(BaseSettings):
         )
 
     @property
-    def ASYNC_DATABASE_URL(self) -&gt; str:
+    def ASYNC_DATABASE_URL(self) -> str:
         # Not used currently, but here for consistency
         return self.final_database_url
 
     @property
-    def is_demo_razorpay(self) -&gt; bool:
+    def is_demo_razorpay(self) -> bool:
         return "demo" in self.RAZORPAY_KEY_ID
 
     class Config:
@@ -67,7 +68,7 @@ class Settings(BaseSettings):
 
 
 @lru_cache()
-def get_settings() -&gt; Settings:
+def get_settings() -> Settings:
     return Settings()
 
 
