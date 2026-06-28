@@ -16,21 +16,25 @@ export function AuthProvider({ children }) {
         const storedUser  = await SecureStore.getItemAsync('user');
         const storedToken = await SecureStore.getItemAsync('token');
         if (storedUser && storedToken) {
-          // Validate token is still valid before restoring session
-          try {
-            const parsed = JSON.parse(storedUser);
-            // Quick verify: check token with backend
-            await axios.get(`${API}/auth/me`, {
-              headers: { Authorization: `Bearer ${storedToken}` },
-              timeout: 5000,
-            });
-            setUser(parsed);
-            setToken(storedToken);
-          } catch (e) {
-            // Token expired or invalid — clear stored session silently
-            await SecureStore.deleteItemAsync('user');
-            await SecureStore.deleteItemAsync('token');
-          }
+          // Restore session immediately from local storage — don't block on network
+          const parsed = JSON.parse(storedUser);
+          setUser(parsed);
+          setToken(storedToken);
+
+          // Validate token in the background (non-blocking)
+          axios.get(`${API}/auth/me`, {
+            headers: { Authorization: `Bearer ${storedToken}` },
+            timeout: 8000,
+          }).catch(async (e) => {
+            // Only clear session on explicit 401 (invalid token), not on network errors
+            if (e.response && e.response.status === 401) {
+              setUser(null);
+              setToken(null);
+              await SecureStore.deleteItemAsync('user');
+              await SecureStore.deleteItemAsync('token');
+            }
+            // Network errors (ECONNREFUSED, timeout) are ignored — keep user logged in
+          });
         }
       } catch (e) {
         // SecureStore error — clear everything

@@ -15,12 +15,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../theme/colors';
 import API from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { Flashlight, RefreshCw, CheckCircle2, Calendar, Clock, User, MapPin, IndianRupee } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 const SCAN_BOX = width * 0.72;
 
 export default function QRScannerScreen({ navigation }) {
   const { token } = useAuth();
+  const { colors } = useTheme();
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
@@ -184,7 +187,7 @@ export default function QRScannerScreen({ navigation }) {
               style={[styles.iconBtn, torchOn && styles.iconBtnActive]}
               onPress={() => setTorchOn(p => !p)}
             >
-              <Text style={styles.iconBtnEmoji}>{torchOn ? '🔦' : '💡'}</Text>
+              <Flashlight size={20} color={torchOn ? colors.accent : '#fff'} />
               <Text style={styles.iconBtnLabel}>{torchOn ? 'Flash On' : 'Flash'}</Text>
             </TouchableOpacity>
 
@@ -194,8 +197,8 @@ export default function QRScannerScreen({ navigation }) {
                 style={[styles.iconBtn, styles.iconBtnPrimary]}
                 onPress={() => setScanned(false)}
               >
-                <Text style={styles.iconBtnEmoji}>🔄</Text>
-                <Text style={[styles.iconBtnLabel, { color: COLORS.white }]}>Scan Again</Text>
+                <RefreshCw size={20} color="#fff" />
+                <Text style={[styles.iconBtnLabel, { color: colors.white }]}>Scan Again</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -225,20 +228,14 @@ export default function QRScannerScreen({ navigation }) {
 // ── Booking result modal ──────────────────────────────────────────────────────
 function BookingResultModal({ visible, booking, onClose, onNavigate }) {
   if (!booking) return null;
+  const { colors } = useTheme();
 
   const statusColor = {
-    confirmed: '#16a34a',
+    confirmed: colors.success,
     pending: '#d97706',
-    cancelled: '#dc2626',
+    cancelled: colors.danger,
     completed: '#2563eb',
-  }[booking.status?.toLowerCase()] || COLORS.primary;
-
-  const statusIcon = {
-    confirmed: '✅',
-    pending: '⏳',
-    cancelled: '❌',
-    completed: '🏆',
-  }[booking.status?.toLowerCase()] || '📋';
+  }[booking.status?.toLowerCase()] || colors.primary;
 
   const slots = Array.isArray(booking.time_slots)
     ? booking.time_slots.join(', ')
@@ -252,40 +249,40 @@ function BookingResultModal({ visible, booking, onClose, onNavigate }) {
       onRequestClose={onClose}
     >
       <View style={modal.backdrop}>
-        <View style={modal.sheet}>
+        <View style={[modal.sheet, { backgroundColor: colors.surface }]}>
           {/* Handle */}
-          <View style={modal.handle} />
+          <View style={[modal.handle, { backgroundColor: colors.border }]} />
 
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Status badge */}
             <View style={[modal.statusBadge, { backgroundColor: statusColor + '20', borderColor: statusColor }]}>
-              <Text style={modal.statusIcon}>{statusIcon}</Text>
+              <CheckCircle2 size={18} color={statusColor} />
               <Text style={[modal.statusText, { color: statusColor }]}>
                 {booking.status?.toUpperCase()}
               </Text>
             </View>
 
             {/* Turf name */}
-            <Text style={modal.turfName}>{booking.turf_name || 'Turf Booking'}</Text>
-            <Text style={modal.bookingId}>Booking ID: #{booking.id}</Text>
+            <Text style={[modal.turfName, { color: colors.text }]}>{booking.turf_name || 'Turf Booking'}</Text>
+            <Text style={[modal.bookingId, { color: colors.textMuted }]}>Booking ID: #{booking.id}</Text>
 
-            <View style={modal.divider} />
+            <View style={[modal.divider, { backgroundColor: colors.border }]} />
 
             {/* Details */}
-            <Row label="📅 Date"    value={booking.booking_date} />
-            <Row label="⏰ Slots"   value={slots} />
-            <Row label="👤 Name"    value={booking.user_name || booking.customer_name || '—'} />
-            <Row label="📍 Venue"   value={booking.turf_location || booking.location || '—'} />
-            <Row label="💰 Amount"  value={`₹${booking.total_price || booking.amount || '—'}`} />
+            <Row icon={<Calendar size={16} color={colors.textMuted} />} label="Date" value={booking.booking_date} />
+            <Row icon={<Clock size={16} color={colors.textMuted} />} label="Slots" value={slots} />
+            <Row icon={<User size={16} color={colors.textMuted} />} label="Name" value={booking.user_name || booking.customer_name || '—'} />
+            <Row icon={<MapPin size={16} color={colors.textMuted} />} label="Venue" value={booking.turf_location || booking.location || '—'} />
+            <Row icon={<IndianRupee size={16} color={colors.textMuted} />} label="Amount" value={`₹${booking.total_price || booking.amount || '—'}`} />
 
-            <View style={modal.divider} />
+            <View style={[modal.divider, { backgroundColor: colors.border }]} />
 
             {/* CTA buttons */}
-            <TouchableOpacity style={modal.primaryBtn} onPress={onNavigate}>
+            <TouchableOpacity style={[modal.primaryBtn, { backgroundColor: colors.primary }]} onPress={onNavigate}>
               <Text style={modal.primaryBtnText}>View My Bookings</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={modal.secondaryBtn} onPress={onClose}>
-              <Text style={modal.secondaryBtnText}>Scan Another</Text>
+            <TouchableOpacity style={[modal.secondaryBtn, { borderColor: colors.primary }]} onPress={onClose}>
+              <Text style={[modal.secondaryBtnText, { color: colors.primary }]}>Scan Another</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -294,11 +291,15 @@ function BookingResultModal({ visible, booking, onClose, onNavigate }) {
   );
 }
 
-function Row({ label, value }) {
+function Row({ icon, label, value }) {
+  const { colors } = useTheme();
   return (
     <View style={modal.row}>
-      <Text style={modal.rowLabel}>{label}</Text>
-      <Text style={modal.rowValue}>{value}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        {icon}
+        <Text style={[modal.rowLabel, { color: colors.textMuted }]}>{label}</Text>
+      </View>
+      <Text style={[modal.rowValue, { color: colors.text }]}>{value}</Text>
     </View>
   );
 }

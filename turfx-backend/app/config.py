@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+import os
 
 
 class Settings(BaseSettings):
@@ -8,6 +9,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     # Database
+    DATABASE_URL: str = ""
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     DB_NAME: str = "turfx_db"
@@ -28,7 +30,7 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASS: str = ""
-    EMAIL_FROM: str = "TurfX <noreply@turfx.in>"
+    EMAIL_FROM: str = "TurfX &lt;noreply@turfx.in&gt;"
 
     # CORS
     FRONTEND_URL: str = "http://localhost:3001"
@@ -39,24 +41,24 @@ class Settings(BaseSettings):
 
     # Admin seed
     ADMIN_PHONE: str = "+919999999999"
-    ADMIN_PASSWORD: str = "Admin@123"
+    ADMIN_PASSWORD: str = "admin@123"
 
     @property
-    def DATABASE_URL(self) -> str:
+    def final_database_url(self) -&gt; str:
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
         return (
             f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
 
     @property
-    def ASYNC_DATABASE_URL(self) -> str:
-        return (
-            f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}"
-            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-        )
+    def ASYNC_DATABASE_URL(self) -&gt; str:
+        # Not used currently, but here for consistency
+        return self.final_database_url
 
     @property
-    def is_demo_razorpay(self) -> bool:
+    def is_demo_razorpay(self) -&gt; bool:
         return "demo" in self.RAZORPAY_KEY_ID
 
     class Config:
@@ -65,7 +67,7 @@ class Settings(BaseSettings):
 
 
 @lru_cache()
-def get_settings() -> Settings:
+def get_settings() -&gt; Settings:
     return Settings()
 
 

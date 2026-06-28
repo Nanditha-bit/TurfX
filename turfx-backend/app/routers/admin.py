@@ -213,6 +213,27 @@ def support_tickets(user=Depends(ADMIN)):
     ]
 
 
+# ── PATCH /api/admin/users/:id/role ───────────────────────────────────────────
+@router.patch("/users/{user_id}/role")
+def update_user_role(user_id: str, new_role: str, user=Depends(ADMIN)):
+    if new_role not in ["user", "owner", "admin"]:
+        raise HTTPException(400, "Invalid role. Must be 'user', 'owner', or 'admin'.")
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET role=%s WHERE id=%s RETURNING *",
+                (new_role, user_id),
+            )
+            updated = cur.fetchone()
+            if not updated:
+                raise HTTPException(404, "User not found.")
+    return {"msg": "Role updated.", "user": {
+        "id": str(updated["id"]),
+        "name": updated["name"],
+        "phone": updated["phone"],
+        "role": updated["role"]
+    }}
+
 # ── PATCH /api/admin/support/tickets/:id ─────────────────────────────────────
 @router.patch("/support/tickets/{ticket_id}")
 def update_ticket(ticket_id: str, body: UpdateTicketRequest, user=Depends(ADMIN)):

@@ -3,20 +3,35 @@ import psycopg2.extras
 from contextlib import contextmanager
 from app.config import settings
 import logging
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
 
 def get_connection():
-    """Create a new database connection."""
-    return psycopg2.connect(
-        host=settings.DB_HOST,
-        port=settings.DB_PORT,
-        dbname=settings.DB_NAME,
-        user=settings.DB_USER,
-        password=settings.DB_PASSWORD,
-        cursor_factory=psycopg2.extras.RealDictCursor,
-    )
+    """Create a new database connection using DATABASE_URL or individual settings."""
+    db_url = settings.final_database_url
+    if db_url.startswith("postgresql://") or db_url.startswith("postgres://"):
+        # Parse the database URL
+        parsed = urlparse(db_url)
+        return psycopg2.connect(
+            host=parsed.hostname,
+            port=parsed.port or 5432,
+            dbname=parsed.path[1:],
+            user=parsed.username,
+            password=parsed.password,
+            cursor_factory=psycopg2.extras.RealDictCursor,
+        )
+    else:
+        # Fall back to individual settings
+        return psycopg2.connect(
+            host=settings.DB_HOST,
+            port=settings.DB_PORT,
+            dbname=settings.DB_NAME,
+            user=settings.DB_USER,
+            password=settings.DB_PASSWORD,
+            cursor_factory=psycopg2.extras.RealDictCursor,
+        )
 
 
 @contextmanager

@@ -62,6 +62,7 @@ origins = [
     "http://localhost:3002",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
+    "http://127.0.0.1:3002",
 ]
 
 app.add_middleware(
@@ -97,7 +98,7 @@ uploads_dir.mkdir(parents=True, exist_ok=True)
 (uploads_dir / "videos").mkdir(exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
-# ── Startup: run migrations ───────────────────────────────────────────────────
+# ── Startup: run migrations and create admin ───────────────────────────────────
 @app.on_event("startup")
 def startup():
     logger.info("🚀 TurfX API starting up …")
@@ -105,6 +106,42 @@ def startup():
         run_migrations()
     except Exception as e:
         logger.error(f"Migration error (non-fatal): {e}")
+    
+    # Create or update admin user
+    try:
+        from app.utils.security import hash_password
+        from app.config import settings
+        
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                # Check if admin exists
+                cur.execute("SELECT * FROM users WHERE phone = %s", (settings.ADMIN_PHONE,))
+                admin = cur.fetchone()
+                
+                admin_hash = hash_password(settings.ADMIN_PASSWORD)
+                
+                if admin:
+                    # Update existing admin
+                    cur.execute(
+                        """UPDATE users 
+                           SET password_hash = %s, role = 'admin', name = 'TurfX Admin' 
+                           WHERE phone = %s 
+                           RETURNING *""",
+                        (admin_hash, settings.ADMIN_PHONE)
+                    )
+                    logger.info("✅ Admin user updated.")
+                else:
+                    # Create new admin
+                    cur.execute(
+                        """INSERT INTO users (name, phone, email, password_hash, role)
+                           VALUES (%s, %s, %s, %s, 'admin')
+                           RETURNING *""",
+                        ("TurfX Admin", settings.ADMIN_PHONE, "admin@turfx.in", admin_hash)
+                    )
+                    logger.info("✅ Admin user created.")
+    except Exception as e:
+        logger.error(f"Admin creation error (non-fatal): {e}")
+        
     logger.info(f"🌍 Environment : {settings.ENVIRONMENT}")
     logger.info(f"🔗 Docs        : http://localhost:{settings.PORT}/api/docs")
 

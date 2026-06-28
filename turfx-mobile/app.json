@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/logo.png",
@@ -17,7 +17,8 @@
       "bundleIdentifier": "com.turfx.app",
       "infoPlist": {
         "NSCameraUsageDescription": "TurfX needs camera access to scan booking QR codes at venues.",
-        "NSMicrophoneUsageDescription": "Microphone access is not used by this app."
+        "NSMicrophoneUsageDescription": "Microphone access is not used by this app.",
+        "NSNotificationUsageDescription": "TurfX needs to send you booking confirmations and reminders."
       }
     },
     "android": {
@@ -27,7 +28,9 @@
       },
       "package": "com.turfx.app",
       "permissions": [
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -40,7 +43,20 @@
         {
           "cameraPermission": "TurfX needs camera access to scan booking QR codes at venues."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo.png",
+          "color": "#084734"
+        }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a472fe76-2ec4-4a00-8be9-0586153cdbc1"
+      }
+    },
+    "owner": "doggesppokk"
   }
 }

@@ -8,6 +8,7 @@ import axios from 'axios';
 import { API_URL as API } from '../../config/api';
 import { COLORS } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
+import { scheduleLocalNotification } from '../../utils/notifications';
 
 // Slots: 6 AM – 10 PM  (short label matching screenshot: "6-7 AM", "11 AM-12 PM", "1-2 PM" etc.)
 const SLOTS = Array.from({ length: 16 }, (_, i) => {
@@ -126,6 +127,11 @@ export default function CheckoutScreen({ route, navigation }) {
             payment_id:  `demo_${Date.now()}`,
           },
           { headers: { Authorization: `Bearer ${token}` } },
+        );
+        // Send booking confirmation notification
+        await scheduleLocalNotification(
+          'Booking Confirmed! 🎉',
+          `Your booking at ${turf.name} on ${date} for ${selectedSlots.length} slot(s) is confirmed!`
         );
         navigation.navigate('BookingConfirmed', {
           booking: { turf, date, slots: selectedSlots, totalAmount: total },

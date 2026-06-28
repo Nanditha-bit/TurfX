@@ -55,7 +55,12 @@ export default function LoginScreen({ navigation }) {
         navigation.replace('MainApp');
       }
     } catch (e) {
-      setErr(e.response?.data?.msg || 'Login failed. Please try again.');
+      if (!e.response) {
+        // No response = network error (backend not reachable)
+        setErr('Cannot connect to server. Please check your internet connection.');
+      } else {
+        setErr(e.response?.data?.msg || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -116,8 +121,12 @@ export default function LoginScreen({ navigation }) {
       if (e.response) {
         console.error('❌ Error response status:', e.response.status);
         console.error('❌ Error response data:', e.response.data);
+        setErr(e.response.data?.msg || 'Registration failed. Please try again.');
+      } else {
+        // Network error
+        console.error('❌ Network error - no response');
+        setErr('Cannot connect to server. Please check your internet connection.');
       }
-      setErr(e.response?.data?.msg || 'Registration failed. Please try again.');
     } finally {
       console.log('⏳ Setting loading to false');
       setLoading(false);
@@ -189,7 +198,7 @@ export default function LoginScreen({ navigation }) {
 
       {/* Tab row — both user and partner */}
       <View style={styles.tabRow}>
-        {['login', 'register'].map(t => (
+        {(isAdminMode ? ['login'] : ['login', 'register']).map(t => (
           <TouchableOpacity key={t} style={[styles.tab, tab === t && styles.tabActive]} onPress={() => { setTab(t); reset(); }}>
             <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>
               {t === 'login' ? 'Login' : 'Create Account'}

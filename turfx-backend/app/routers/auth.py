@@ -49,24 +49,38 @@ def register(body: RegisterRequest):
     return {"token": token, "user": fmt_user(user)}
 
 
+import logging
+from fastapi import HTTPException
+
+# ── Test endpoint ────────────────────────────────────────────────────────────
+@router.get("/test")
+def test_endpoint():
+    return {"message": "✅ Backend is reachable!", "status": "success"}
+
 # ── Login ─────────────────────────────────────────────────────────────────────
 @router.post("/password-login")
 def login(body: LoginRequest):
+    logging.info(f"🔐 LOGIN ATTEMPT: Phone={body.phone!r}, Password={body.password!r}")
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT * FROM users WHERE phone=%s AND is_active=TRUE", (body.phone,)
             )
             user = cur.fetchone()
+            logging.info(f"📊 Found user: {dict(user) if user else 'None'}")
 
     if not user:
         raise HTTPException(401, "Invalid phone number or password.")
     if not user["password_hash"]:
         raise HTTPException(401, "This account uses OTP login.")
-    if not verify_password(body.password, user["password_hash"]):
+    
+    valid = verify_password(body.password, user["password_hash"])
+    logging.info(f"🔑 Password valid? {valid}")
+    if not valid:
         raise HTTPException(401, "Invalid phone number or password.")
 
     token = create_token({"id": str(user["id"]), "role": user["role"]})
+    logging.info(f"✅ Login successful! User role: {user['role']}")
     return {"token": token, "user": fmt_user(dict(user))}
 
 
