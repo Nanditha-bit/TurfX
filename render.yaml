@@ -13,7 +13,9 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: turfx-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_ALGORITHM
@@ -28,3 +30,9 @@ services:
         value: /tmp/uploads
       - key: MAX_FILE_SIZE_MB
         value: 10
+
+databases:
+  - name: turfx-db
+    plan: free
+    databaseName: turfx_db
+    user: turfx_user
