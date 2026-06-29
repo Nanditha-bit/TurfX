@@ -69,11 +69,31 @@ const m = StyleSheet.create({
 });
 
 export default function AddVenueScreen({ navigation }) {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [showStatePicker, setShowStatePicker] = useState(false);
   const [showCityPicker, setShowCityPicker]   = useState(false);
+
+  // Show a warning if user is not an owner
+  if (user && user.role !== 'owner') {
+    return (
+      <View style={[s.root, { alignItems: 'center', justifyContent: 'center', padding: 24 }]}>
+        <Text style={{ fontSize: 20, fontWeight: '900', color: COLORS.dark, textAlign: 'center', marginBottom: 16 }}>
+          ⚠️ Access Denied
+        </Text>
+        <Text style={{ fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginBottom: 24 }}>
+          You need a Partner account to add venues.
+        </Text>
+        <TouchableOpacity
+          style={[s.btn, { backgroundColor: COLORS.primary }]}
+          onPress={() => navigation.replace('Login')}
+        >
+          <Text style={[s.btnText, { color: COLORS.accent }]}>Go to Login</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const [form, setForm] = useState({
     name:'', sports:[], type:'Outdoor',
@@ -605,4 +625,6 @@ const s = StyleSheet.create({
   nextBtnText:{color:COLORS.primary,fontWeight:'900',fontSize:16},
   submitBtn:{backgroundColor:COLORS.primary,borderRadius:14,padding:16,alignItems:'center'},
   submitBtnText:{color:COLORS.accent,fontWeight:'900',fontSize:16},
+  btn: { borderRadius: 12, padding: 14, alignItems: 'center' },
+  btnText: { fontWeight: '800', fontSize: 14 },
 });

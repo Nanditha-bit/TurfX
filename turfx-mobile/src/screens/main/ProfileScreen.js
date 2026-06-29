@@ -13,6 +13,23 @@ export default function ProfileScreen({ navigation }) {
   const [editing, setEditing]   = useState(false);
   const [name, setName]         = useState(user?.name || '');
   const [saving, setSaving]     = useState(false);
+  const [refreshingRole, setRefreshingRole] = useState(false);
+
+  const refreshRole = async () => {
+    if (!token) return;
+    setRefreshingRole(true);
+    try {
+      const res = await axios.get(`${API}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      login(res.data, token);
+      Alert.alert('✅ Success', 'Role refreshed!');
+    } catch (e) {
+      Alert.alert('❌ Error', 'Could not refresh role');
+    } finally {
+      setRefreshingRole(false);
+    }
+  };
 
   if (!user) {
     return (
@@ -65,7 +82,24 @@ export default function ProfileScreen({ navigation }) {
           </View>
           <Text style={[s.userName, { color: colors.text }]}>{user.name}</Text>
           <Text style={[s.userPhone, { color: colors.textMuted }]}>{user.phone}</Text>
-          {joinedDate && <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>Member since {joinedDate}</Text>}
+          
+          {/* Role Display */}
+          <View style={[s.roleBadge, { backgroundColor: user.role === 'owner' ? colors.accent : colors.primary }]}>
+            <Text style={[s.roleText, { color: user.role === 'owner' ? colors.primary : colors.accent }]}>
+              {user.role === 'owner' ? '🏟️ Partner' : '👤 User'}
+            </Text>
+          </View>
+          
+          {/* Refresh Role Button */}
+          <TouchableOpacity style={s.refreshBtn} onPress={refreshRole} disabled={refreshingRole}>
+            {refreshingRole ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Text style={s.refreshBtnText}>🔄 Refresh Role</Text>
+            )}
+          </TouchableOpacity>
+          
+          {joinedDate && <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 8 }}>Member since {joinedDate}</Text>}
         </View>
 
         {/* Theme Selector */}
@@ -181,6 +215,10 @@ const s = StyleSheet.create({
   avatarText: { fontSize: 32, fontWeight: '900' },
   userName: { fontSize: 20, fontWeight: '800' },
   userPhone: { fontSize: 14, fontWeight: '500', marginTop: 2 },
+  roleBadge: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginTop: 12 },
+  roleText: { fontSize: 13, fontWeight: '800' },
+  refreshBtn: { marginTop: 12, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, borderWidth: 1.5, borderColor: COLORS.border },
+  refreshBtnText: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
   card: { borderRadius: 16, padding: 16, borderWidth: 1.5, marginBottom: 16 },
   cardTitle: { fontSize: 16, fontWeight: '800', marginBottom: 12 },
   editBtn: { borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, flexDirection: 'row', alignItems: 'center' },
