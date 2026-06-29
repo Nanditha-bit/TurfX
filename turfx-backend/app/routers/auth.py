@@ -19,6 +19,13 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # ── Register ──────────────────────────────────────────────────────────────────
 @router.post("/register-password")
 def register(body: RegisterRequest):
+    print("📝 REGISTER REQUEST RECEIVED:")
+    print(f"  Name: {body.name}")
+    print(f"  Phone: {body.phone}")
+    print(f"  Email: {body.email}")
+    print(f"  Role requested: {body.role}")
+    print(f"  Password length: {len(body.password)}")
+    
     if len(body.password) < 6:
         raise HTTPException(400, "Password must be at least 6 characters.")
     if not body.phone.startswith("+"):
@@ -26,7 +33,8 @@ def register(body: RegisterRequest):
 
     valid_roles = {"user", "owner"}
     role = body.role if body.role in valid_roles else "user"
-
+    print(f"  Final role to assign: {role}")
+    
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT id FROM users WHERE phone=%s", (body.phone,))
@@ -38,14 +46,18 @@ def register(body: RegisterRequest):
                     raise HTTPException(400, "An account with this email already exists.")
 
             pw_hash = hash_password(body.password)
+            print("  Inserting into users table...")
             cur.execute(
                 """INSERT INTO users (name, phone, email, password_hash, role)
                    VALUES (%s,%s,%s,%s,%s) RETURNING *""",
                 (body.name.strip(), body.phone, body.email or None, pw_hash, role),
             )
             user = dict(cur.fetchone())
+            print(f"  User created successfully! User data: {user}")
+            print(f"  User's role from DB: {user['role']}")
 
     token = create_token({"id": str(user["id"]), "role": user["role"]})
+    print(f"  Token created. Returning user: {fmt_user(user)}")
     return {"token": token, "user": fmt_user(user)}
 
 
@@ -220,13 +232,39 @@ def update_profile(body: UpdateProfileRequest, user=Depends(get_current_user)):
     return fmt_user(dict(updated))
 
 
+# ── Become Partner (upgrade user role to owner) ───────────────────────────────
+@router.post("/become-partner")
+def become_partner(user=Depends(get_current_user)):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET role='owner', updated_at=NOW() WHERE id=%s RETURNING *",
+                (user["id"],),
+            )
+            updated = cur.fetchone()
+    token = create_token({"id": str(updated["id"]), "role": updated["role"]})
+    return {"token": token, "user": fmt_user(dict(updated))}
+
+
 # ── Logout ────────────────────────────────────────────────────────────────────
 @router.post("/logout")
 def logout(user=Depends(get_current_user)):
     return {"msg": "Logged out successfully."}
 
 
-# ── Me ────────────────────────────────────────────────────────────────────────
+# ── Me ──────────────────────────────────────────────────────────────────────
 @router.get("/me")
 def me(user=Depends(get_current_user)):
     return fmt_user(user)
+
+# ── Upgrade to Partner (owner) ────────────────────────────────────────────────
+@router.post("/upgrade-to-partner")
+def upgrade_to_partner(user=Depends(get_current_user)):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE users SET role='owner' WHERE id=%s RETURNING *", (user["id"],))
+            updated_user = cur.fetchone()
+            if not updated_user:
+                raise HTTPException(404, "User not found!")
+    
+    return {"token": create_token({"id": str(updated_user["id"]), "role": updated_user["role"]}), "user": fmt_user(updated_user)}

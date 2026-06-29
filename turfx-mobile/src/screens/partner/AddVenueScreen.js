@@ -160,6 +160,12 @@ export default function AddVenueScreen({ navigation }) {
 
   const handleNext   = () => { if (validateStep()) setStep(s => s + 1); };
   const handleSubmit = async () => {
+    if (!token) {
+      Alert.alert('Error', 'You are not logged in. Please log in again.');
+      navigation.replace('Login');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const sport  = form.sports[0] || 'Football';
@@ -178,7 +184,18 @@ export default function AddVenueScreen({ navigation }) {
         { text:'Go to Venues', onPress:()=>navigation.replace('PartnerApp') },
       ]);
     } catch (e) {
-      Alert.alert('Error', e.response?.data?.msg || 'Failed to submit venue.');
+      const status = e.response?.status;
+      const msg = e.response?.data?.msg || 'Failed to submit venue.';
+      if (status === 403) {
+        Alert.alert('Access Denied', 'Your session may be outdated. Please log out and log back in as a Partner.');
+      } else if (status === 401) {
+        Alert.alert('Session Expired', 'Please log out and log back in.');
+        navigation.replace('Login');
+      } else if (!e.response) {
+        Alert.alert('Network Error', 'Cannot connect to server. Make sure backend is running.');
+      } else {
+        Alert.alert('Error', msg);
+      }
     } finally { setSubmitting(false); }
   };
 

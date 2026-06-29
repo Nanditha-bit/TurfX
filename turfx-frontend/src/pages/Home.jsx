@@ -6,6 +6,7 @@ import OffersSection from '../components/OffersSection';
 import { useNavigate } from 'react-router-dom';
 import { Search, Navigation, Trophy, MapPin } from 'lucide-react';
 import { API_URL as API } from '../config/api';
+import { useTheme } from '../context/ThemeContext';
 
 const POPULAR_CITIES = ['Bengaluru', 'Mumbai', 'Delhi', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad'];
 
@@ -25,6 +26,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [selectedCity, setSelectedCity] = useState('Bengaluru');
   const navigate = useNavigate();
+  const { colors, theme } = useTheme();
 
   useEffect(() => {
     axios.get(`${API}/turfs`)
@@ -54,7 +56,7 @@ export default function Home() {
     : turfsList.filter(t => (t.sport || '').toLowerCase() === sport.toLowerCase());
 
   return (
-    <div style={{ background: '#F8FAF7', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ background: colors.background, fontFamily: "'DM Sans', sans-serif" }}>
 
       {/* HERO */}
       <div style={{
@@ -186,29 +188,29 @@ export default function Home() {
       </div>
 
       {/* POPULAR CITIES */}
-      <div style={{ padding: '4rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ padding: '4rem 2rem', maxWidth: '1200px', margin: '0 auto', background: colors.background }}>
         <div style={{ marginBottom: '2rem' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#084734', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ display: 'inline-block', width: '20px', height: '2px', background: '#CEF17B' }}></span>
             Find your field
           </div>
-          <h2 style={{ fontSize: '2.2rem', fontWeight: '800', color: '#161616', marginBottom: '8px', fontFamily: "'Sora', sans-serif" }}>Popular <span style={{ color: '#084734' }}>Cities</span></h2>
-          <p style={{ color: '#98A2B3', fontSize: '1rem', fontFamily: "'DM Sans', sans-serif" }}>Book turfs across India's top sports cities</p>
+          <h2 style={{ fontSize: '2.2rem', fontWeight: '800', color: colors.text, marginBottom: '8px', fontFamily: "'Sora', sans-serif" }}>Popular <span style={{ color: '#084734' }}>Cities</span></h2>
+          <p style={{ color: colors.textSecondary, fontSize: '1rem', fontFamily: "'DM Sans', sans-serif" }}>Book turfs across India's top sports cities</p>
         </div>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           {POPULAR_CITIES.map(c => (
             <div key={c} onClick={() => { setSelectedCity(c); navigate(`/explore?city=${c}`); }}
               style={{
-                background: selectedCity === c ? '#084734' : 'white',
-                border: `1.5px solid ${selectedCity === c ? '#084734' : '#e5e7eb'}`,
+                background: selectedCity === c ? '#084734' : colors.cardBg,
+                border: `1.5px solid ${selectedCity === c ? '#084734' : colors.border}`,
                 borderRadius: '50px', padding: '10px 24px',
                 cursor: 'pointer', fontSize: '0.9rem',
                 fontWeight: selectedCity === c ? '700' : '500',
-                color: selectedCity === c ? 'white' : '#161616',
+                color: selectedCity === c ? 'white' : colors.text,
                 transition: 'all 0.2s',
               }}
-              onMouseEnter={e => { if (selectedCity !== c) { e.currentTarget.style.borderColor = '#084734'; e.currentTarget.style.color = '#084734'; e.currentTarget.style.background = 'white'; } }}
-              onMouseLeave={e => { if (selectedCity !== c) { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#161616'; e.currentTarget.style.background = 'white'; } }}
+              onMouseEnter={e => { if (selectedCity !== c) { e.currentTarget.style.borderColor = '#084734'; e.currentTarget.style.color = '#084734'; e.currentTarget.style.background = colors.cardBg; } }}
+              onMouseLeave={e => { if (selectedCity !== c) { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.color = colors.text; e.currentTarget.style.background = colors.cardBg; } }}
             >
               {c}
             </div>
@@ -217,14 +219,14 @@ export default function Home() {
       </div>
 
       {/* FEATURED TURFS */}
-      <div style={{ padding: '0 2rem 5rem', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ padding: '0 2rem 5rem', maxWidth: '1200px', margin: '0 auto', background: colors.background }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#084734', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ display: 'inline-block', width: '20px', height: '2px', background: '#CEF17B' }}></span>
               Top rated near you
             </div>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: '800', color: '#161616' }}>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: '800', color: colors.text }}>
               Featured <span style={{ color: '#084734' }}>Turfs</span>
             </h2>
           </div>
@@ -244,9 +246,9 @@ export default function Home() {
         <div style={{ display: 'flex', gap: '10px', marginBottom: '2rem', flexWrap: 'wrap' }}>
           {FILTER_SPORTS.map(s => (
             <button key={s} onClick={() => setSport(s)} style={{
-              background: sport === s ? '#161616' : '#F0F0F0',
-              color: sport === s ? 'white' : '#161616',
-              border: `1.5px solid ${sport === s ? '#161616' : '#E5E5E5'}`,
+              background: sport === s ? '#161616' : colors.hover,
+              color: sport === s ? 'white' : colors.text,
+              border: `1.5px solid ${sport === s ? '#161616' : colors.border}`,
               padding: '8px 20px', borderRadius: '50px',
               fontSize: '0.88rem', fontWeight: '600', cursor: 'pointer',
               transition: 'all 0.2s',
@@ -257,7 +259,7 @@ export default function Home() {
         </div>
 
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '4rem', color: '#98A2B3' }}>
+          <div style={{ textAlign: 'center', padding: '4rem', color: colors.textSecondary }}>
             <MapPin size={48} style={{ margin: '0 auto 1rem', display: 'block', opacity: 0.3 }} />
             <p style={{ fontSize: '1.1rem', fontWeight: '500' }}>No venues match your current selection.</p>
           </div>

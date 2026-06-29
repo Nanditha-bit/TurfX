@@ -121,9 +121,6 @@ export default function ProfileScreen({ navigation }) {
           <InfoRow label="Email" colors={colors}>
             <Text style={[s.infoVal, { color: colors.textMuted }]}>{user.email || '—'}</Text>
           </InfoRow>
-          <InfoRow label="Role" colors={colors}>
-            <Text style={[s.infoVal, { color: colors.textMuted }]}>Customer</Text>
-          </InfoRow>
 
           {editing && (
             <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>

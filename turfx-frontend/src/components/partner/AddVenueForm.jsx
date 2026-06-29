@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { 
   ChevronLeft, ChevronRight, Check, Upload, MapPin, Info, 
   Clock, ShieldCheck, User as UserIcon, Users, 
@@ -21,6 +22,7 @@ const LOCATION_DATA = {
 
 export default function AddVenueForm({ onCancel, onComplete }) {
   const { token } = useAuth();
+  const { colors, theme } = useTheme();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -213,6 +215,74 @@ export default function AddVenueForm({ onCancel, onComplete }) {
 }
 
 function BasicDetails({ formData, setFormData }) {
+  const [gettingLocation, setGettingLocation] = useState(false);
+
+  const handleGetLocation = () => {
+    setGettingLocation(true);
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      setGettingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        // Use a reverse geocoding API to get address from coordinates
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+          .then(res => res.json())
+          .then(data => {
+            const address = data.address;
+            const city = address.city || address.town || address.village || '';
+            const state = address.state || '';
+            
+            // Try to match state and city to our LOCATION_DATA
+            let matchedState = '';
+            let matchedCity = '';
+            
+            // Find state match
+            for (const s of Object.keys(LOCATION_DATA)) {
+              if (state.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(state.toLowerCase())) {
+                matchedState = s;
+                break;
+              }
+            }
+            
+            // Find city match if state is found
+            if (matchedState && LOCATION_DATA[matchedState]) {
+              for (const c of LOCATION_DATA[matchedState]) {
+                if (city.toLowerCase().includes(c.toLowerCase()) || c.toLowerCase().includes(city.toLowerCase())) {
+                  matchedCity = c;
+                  break;
+                }
+              }
+            }
+
+            setFormData({
+              ...formData,
+              location: address.road || address.neighbourhood || address.suburb || '',
+              city: matchedCity || city,
+              state: matchedState || state,
+              pincode: address.postcode || ''
+            });
+            
+            setGettingLocation(false);
+          })
+          .catch(err => {
+            console.error('Error getting address:', err);
+            alert('Could not get address from location');
+            setGettingLocation(false);
+          });
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        alert(`Error getting location: ${error.message}`);
+        setGettingLocation(false);
+      }
+    );
+  };
+
   const [availableCities, setAvailableCities] = useState([]);
 
   useEffect(() => {
@@ -229,125 +299,128 @@ function BasicDetails({ formData, setFormData }) {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '4.5rem' }}>
-       <div>
-          <SectionHeader icon={<Info size={20} />} title="Basic Details" subtitle="Enter the core information about your sports venue" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-             <Field label="Venue Name *">
-               <input 
-                 type="text" 
-                 placeholder="e.g. Green Turf Arena" 
-                 value={formData.name}
-                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                 style={inputStyle} 
-               />
-             </Field>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <SectionHeader icon={<Info size={20} />} title="Basic Details" subtitle="Enter the core information about your sports venue" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <Field label="Venue Name *">
+          <input 
+            type="text" 
+            placeholder="e.g. Green Turf Arena" 
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            style={inputStyle} 
+          />
+        </Field>
 
-             <Field label="Sports Offered *">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                  {SPORTS_LIST.map(sport => (
-                    <div 
-                      key={sport}
-                      onClick={() => handleSportToggle(sport)}
-                      style={{ 
-                        padding: '10px 18px', borderRadius: '10px', border: '1.5px solid',
-                        borderColor: formData.sports.includes(sport) ? '#CEF17B' : '#DCEFB8',
-                        background: formData.sports.includes(sport) ? '#DCEFB8' : 'white',
-                        color: formData.sports.includes(sport) ? '#CEF17B' : '#98A2B3',
-                        fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer', transition: '0.2s'
-                      }}
-                    >
-                      {sport}
-                    </div>
-                  ))}
-                </div>
-             </Field>
-
-             <Field label="Venue Type *">
-                <div style={{ display: 'flex', gap: '2.5rem' }}>
-                   {['Outdoor', 'Indoor', 'Indoor + Outdoor'].map(t => (
-                     <label key={t} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.95rem', fontWeight: '600', color: '#161616' }}>
-                       <input 
-                         type="radio" 
-                         name="type" 
-                         checked={formData.type === t} 
-                         onChange={() => setFormData({...formData, type: t})} 
-                         style={{ accentColor: '#CEF17B', width: '18px', height: '18px' }} 
-                       /> {t}
-                     </label>
-                   ))}
-                </div>
-             </Field>
-
-             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                <Field label="State *">
-                  <select 
-                    style={inputStyle}
-                    value={formData.state}
-                    onChange={(e) => setFormData({...formData, state: e.target.value, city: ''})}
-                  >
-                    <option value="">Select State</option>
-                    {Object.keys(LOCATION_DATA).map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </Field>
-                <Field label="City *">
-                  <select 
-                    style={inputStyle}
-                    value={formData.city}
-                    onChange={(e) => setFormData({...formData, city: e.target.value})}
-                    disabled={!formData.state}
-                  >
-                    <option value="">Select City</option>
-                    {availableCities.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </Field>
-             </div>
-
-             <Field label="Location / Landmark *">
-                <div style={{ position: 'relative' }}>
-                  <MapPin size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                  <input 
-                    type="text" 
-                    placeholder="Enter locality or nearby landmark" 
-                    value={formData.location}
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    style={{ ...inputStyle, paddingLeft: '48px' }} 
-                  />
-                </div>
-             </Field>
+        <Field label="Sports Offered *">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            {SPORTS_LIST.map(sport => (
+              <div 
+                key={sport}
+                onClick={() => handleSportToggle(sport)}
+                style={{ 
+                  padding: '10px 18px', borderRadius: '10px', border: '1.5px solid',
+                  borderColor: formData.sports.includes(sport) ? '#CEF17B' : '#DCEFB8',
+                  background: formData.sports.includes(sport) ? '#DCEFB8' : 'white',
+                  color: formData.sports.includes(sport) ? '#CEF17B' : '#98A2B3',
+                  fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer', transition: '0.2s'
+                }}
+              >
+                {sport}
+              </div>
+            ))}
           </div>
-       </div>
+        </Field>
 
-       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          <div style={{ background: '#F8FAF7', borderRadius: '24px', border: '1.5px solid #EEF2E6', flex: 1, minHeight: '400px', display: 'flex', flexDirection: 'column', padding: '1.5rem', overflow: 'hidden' }}>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#084734', background: '#DCEFB8', padding: '12px 16px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700', marginBottom: '1.5rem' }}>
-               <MapPin size={18} /> Map Preview
-             </div>
-             <div style={{ flex: 1, borderRadius: '16px', overflow: 'hidden', position: 'relative' }}>
-                {formData.city ? (
-                  <iframe 
-                    width="100%" 
-                    height="100%" 
-                    frameBorder="0" 
-                    style={{ border: 0 }}
-                    src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDGNxC2MRLRxCZeGEkiQrfMcI0vfPKm4qU&q=${encodeURIComponent(formData.location + ' ' + formData.city + ' ' + formData.state)}`} 
-                    allowFullScreen
-                  ></iframe>
-                ) : (
-                  <div style={{ width: '100%', height: '100%', background: '#DCEFB8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontWeight: '700', textAlign: 'center', padding: '2rem' }}>
-                    Select state and city to <br/> preview location on map
-                  </div>
-                )}
-             </div>
+        <Field label="Venue Type *">
+          <div style={{ display: 'flex', gap: '2.5rem' }}>
+            {['Outdoor', 'Indoor', 'Indoor + Outdoor'].map(t => (
+              <label key={t} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.95rem', fontWeight: '600', color: '#161616' }}>
+                <input 
+                  type="radio" 
+                  name="type" 
+                  checked={formData.type === t} 
+                  onChange={() => setFormData({...formData, type: t})} 
+                  style={{ accentColor: '#CEF17B', width: '18px', height: '18px' }} 
+                /> {t}
+              </label>
+            ))}
           </div>
-          
-          <div style={{ background: 'white', borderRadius: '24px', border: '1.5px solid #EEF2E6', padding: '1.5rem' }}>
-             <h4 style={{ fontSize: '0.9rem', fontWeight: '800', marginBottom: '1rem', color: '#161616' }}>Pro Tip</h4>
-             <p style={{ fontSize: '0.85rem', color: '#98A2B3', lineHeight: 1.6, fontWeight: '500' }}>
-               Venues with accurate location details and landmarks get **30% more bookings** as it helps players find you easily.
-             </p>
+        </Field>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+          <Field label="State *">
+            <select 
+              style={inputStyle}
+              value={formData.state}
+              onChange={(e) => setFormData({...formData, state: e.target.value, city: ''})}
+            >
+              <option value="">Select State</option>
+              {Object.keys(LOCATION_DATA).map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+          <Field label="City *">
+            <select 
+              style={inputStyle}
+              value={formData.city}
+              onChange={(e) => setFormData({...formData, city: e.target.value})}
+              disabled={!formData.state}
+            >
+              <option value="">Select City</option>
+              {availableCities.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </Field>
+        </div>
+        <Field label="Pincode">
+          <input 
+            type="text" 
+            placeholder="Enter pincode" 
+            value={formData.pincode}
+            onChange={(e) => setFormData({...formData, pincode: e.target.value})}
+            style={inputStyle} 
+          />
+        </Field>
+
+        <Field label="Location / Landmark *">
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <MapPin size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              <input 
+                type="text" 
+                placeholder="Enter locality or nearby landmark" 
+                value={formData.location}
+                onChange={(e) => setFormData({...formData, location: e.target.value})}
+                style={{ ...inputStyle, paddingLeft: '48px' }} 
+              />
+            </div>
+            <button
+              onClick={handleGetLocation}
+              disabled={gettingLocation}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '10px',
+                background: '#CEF17B',
+                color: '#084734',
+                border: 'none',
+                fontWeight: '700',
+                cursor: gettingLocation ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {gettingLocation ? 'Getting...' : 'Use My Location'}
+            </button>
           </div>
-       </div>
+        </Field>
+      </div>
+      <div style={{ background: '#F8FAF7', borderRadius: '24px', border: '1.5px solid #EEF2E6', padding: '1.5rem' }}>
+        <h4 style={{ fontSize: '0.9rem', fontWeight: '800', marginBottom: '1rem', color: '#161616' }}>Pro Tip</h4>
+        <p style={{ fontSize: '0.85rem', color: '#98A2B3', lineHeight: 1.6, fontWeight: '500' }}>
+          Venues with accurate location details and landmarks get **30% more bookings** as it helps players find you easily.
+        </p>
+      </div>
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { COLORS } from '../theme/colors';
 import { 
   Home, Search, Calendar, User, 
   LayoutDashboard, BookOpen, DollarSign, MapPin,
-  QrCode, ShieldCheck
+  QrCode
 } from 'lucide-react-native';
 
 // Auth
@@ -31,10 +31,6 @@ import PartnerBookingsScreen  from '../screens/partner/PartnerBookingsScreen';
 import PartnerVenuesScreen    from '../screens/partner/PartnerVenuesScreen';
 import PartnerEarningsScreen  from '../screens/partner/PartnerEarningsScreen';
 import AddVenueScreen         from '../screens/partner/AddVenueScreen';
-
-// Admin screens
-import AdminLoginScreen       from '../screens/admin/AdminLoginScreen';
-import AdminDashboardScreen   from '../screens/admin/AdminDashboardScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab   = createBottomTabNavigator();
@@ -148,13 +144,16 @@ export default function AppNavigator() {
 
   let initialRoute = 'Login';
   if (user) {
-    if (user.role === 'admin') {
-      initialRoute = 'AdminDashboard';
-    } else if (user.role === 'owner') {
+    console.log('🗺️ AppNavigator: User is logged in, role:', user.role);
+    if (user.role === 'owner') {
       initialRoute = 'PartnerApp';
+      console.log('🗺️ AppNavigator: Setting initial route to PartnerApp');
     } else {
       initialRoute = 'MainApp';
+      console.log('🗺️ AppNavigator: Setting initial route to MainApp');
     }
+  } else {
+    console.log('🗺️ AppNavigator: No user logged in, setting initial route to Login');
   }
 
   return (
@@ -173,10 +172,6 @@ export default function AppNavigator() {
         {/* Partner app */}
         <Stack.Screen name="PartnerApp"      component={PartnerTabs} />
         <Stack.Screen name="AddVenue"        component={AddVenueScreen} />
-
-        {/* Admin app */}
-        <Stack.Screen name="AdminLogin"      component={AdminLoginScreen} />
-        <Stack.Screen name="AdminDashboard"  component={AdminDashboardScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

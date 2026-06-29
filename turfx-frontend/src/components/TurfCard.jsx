@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Star, Zap } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 // ── Default fallback images per sport (real turf photos) ─────────────────────
 // Using Unsplash — free, no API key, reliable CDN
@@ -34,19 +35,20 @@ const getDisplayImage = (turf) => {
 
 export default function TurfCard({ turf, listView }) {
   const navigate = useNavigate();
+  const { colors } = useTheme();
   const displayImage = getDisplayImage(turf);
 
   if (listView) {
     return (
       <div
-        onClick={() => navigate(`/turf/${turf._id}`)}
+        onClick={() => navigate('/turf/' + turf._id)}
         style={{
-          background: 'white', borderRadius: '16px', overflow: 'hidden',
-          border: '1px solid #e5e7eb', cursor: 'pointer', display: 'flex',
+          background: colors.cardBg, borderRadius: '16px', overflow: 'hidden',
+          border: '1px solid ' + colors.border, cursor: 'pointer', display: 'flex',
           transition: 'all 0.3s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.08)'; }}
-        onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
+        onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.08)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
       >
         {/* Thumbnail */}
         <div style={{ width: '200px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
@@ -68,10 +70,10 @@ export default function TurfCard({ turf, listView }) {
         {/* Content */}
         <div style={{ padding: '1.25rem', flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#161616', marginBottom: '4px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: colors.text, marginBottom: '4px' }}>
               {turf.name}
             </h3>
-            <p style={{ color: '#98A2B3', fontSize: '0.85rem', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <p style={{ color: colors.textSecondary, fontSize: '0.85rem', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <MapPin size={13} /> {turf.location}, {turf.city}
             </p>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -83,18 +85,18 @@ export default function TurfCard({ turf, listView }) {
             </div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '1rem' }}>
-            <div style={{ fontSize: '1.3rem', fontWeight: '800', color: '#161616' }}>
+            <div style={{ fontSize: '1.3rem', fontWeight: '800', color: colors.text }}>
               ₹{turf.price_per_hour}
-              <span style={{ fontSize: '0.85rem', color: '#98A2B3', fontWeight: '400' }}> / hr</span>
+              <span style={{ fontSize: '0.85rem', color: colors.textSecondary, fontWeight: '400' }}> / hr</span>
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#98A2B3', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '3px' }}>
+            <div style={{ fontSize: '0.8rem', color: colors.textSecondary, marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '3px' }}>
               <Star size={12} fill="#f59e0b" color="#f59e0b" /> {turf.rating || 0}
             </div>
             <button
-              onClick={e => { e.stopPropagation(); navigate(`/turf/${turf._id}`); }}
+              onClick={(e) => { e.stopPropagation(); navigate('/turf/' + turf._id); }}
               style={{ background: '#084734', color: 'white', border: 'none', padding: '8px 18px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}
-              onMouseEnter={e => { e.target.style.background = '#CEF17B'; e.target.style.color = '#084734'; }}
-              onMouseLeave={e => { e.target.style.background = '#084734'; e.target.style.color = 'white'; }}
+              onMouseEnter={(e) => { e.target.style.background = '#CEF17B'; e.target.style.color = '#084734'; }}
+              onMouseLeave={(e) => { e.target.style.background = '#084734'; e.target.style.color = 'white'; }}
             >
               Book Now
             </button>
@@ -107,13 +109,13 @@ export default function TurfCard({ turf, listView }) {
   // ── Grid card ────────────────────────────────────────────────────────────────
   return (
     <div
-      onClick={() => navigate(`/turf/${turf._id}`)}
+      onClick={() => navigate('/turf/' + turf._id)}
       style={{
-        background: 'white', borderRadius: '16px', overflow: 'hidden',
-        border: '1px solid #e5e7eb', cursor: 'pointer', transition: 'all 0.3s',
+        background: colors.cardBg, borderRadius: '16px', overflow: 'hidden',
+        border: '1px solid ' + colors.border, cursor: 'pointer', transition: 'all 0.3s',
       }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.1)'; }}
-      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.1)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
     >
       {/* Image */}
       <div style={{ height: '200px', position: 'relative', overflow: 'hidden' }}>
@@ -121,8 +123,8 @@ export default function TurfCard({ turf, listView }) {
           src={displayImage}
           alt={turf.name}
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
         />
 
         {/* Sport badge — top right */}
@@ -164,10 +166,10 @@ export default function TurfCard({ turf, listView }) {
 
       {/* Info */}
       <div style={{ padding: '1.25rem' }}>
-        <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#161616', marginBottom: '4px' }}>
+        <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: colors.text, marginBottom: '4px' }}>
           {turf.name}
         </h3>
-        <p style={{ color: '#98A2B3', fontSize: '0.85rem', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <p style={{ color: colors.textSecondary, fontSize: '0.85rem', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
           <MapPin size={13} /> {turf.location}, {turf.city}
         </p>
 
@@ -179,23 +181,23 @@ export default function TurfCard({ turf, listView }) {
           ))}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #f3f4f6' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid ' + colors.border }}>
           <div>
-            <span style={{ fontSize: '1.3rem', fontWeight: '800', color: '#161616' }}>₹{turf.price_per_hour}</span>
-            <span style={{ color: '#98A2B3', fontSize: '0.85rem' }}> / hr</span>
-            <div style={{ fontSize: '0.8rem', color: '#98A2B3', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+            <span style={{ fontSize: '1.3rem', fontWeight: '800', color: colors.text }}>₹{turf.price_per_hour}</span>
+            <span style={{ color: colors.textSecondary, fontSize: '0.85rem' }}> / hr</span>
+            <div style={{ fontSize: '0.8rem', color: colors.textSecondary, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
               <Star size={12} fill="#f59e0b" color="#f59e0b" /> {turf.rating || 0}
             </div>
           </div>
           <button
-            onClick={e => { e.stopPropagation(); navigate(`/turf/${turf._id}`); }}
+            onClick={(e) => { e.stopPropagation(); navigate('/turf/' + turf._id); }}
             style={{
               background: '#084734', color: 'white', border: 'none',
               padding: '10px 20px', borderRadius: '10px',
               fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s',
             }}
-            onMouseEnter={e => { e.target.style.background = '#CEF17B'; e.target.style.color = '#084734'; }}
-            onMouseLeave={e => { e.target.style.background = '#084734'; e.target.style.color = 'white'; }}
+            onMouseEnter={(e) => { e.target.style.background = '#CEF17B'; e.target.style.color = '#084734'; }}
+            onMouseLeave={(e) => { e.target.style.background = '#084734'; e.target.style.color = 'white'; }}
           >
             Book Now
           </button>

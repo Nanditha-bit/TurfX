@@ -1,20 +1,18 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import ThemeToggle from '../../components/ThemeToggle';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import {
   LayoutDashboard, MapPin, Calendar, Clock,
   IndianRupee, TrendingUp, Settings,
-  LogOut, Bell, User as UserIcon, Wallet, Percent, HelpCircle,
-  Trophy, Check, X, Footprints
+  LogOut, User as UserIcon, Wallet, Percent, HelpCircle,
+  Trophy, Footprints
 } from 'lucide-react';
 
 import PartnerVenues from '../../components/partner/PartnerVenues';
 import AddVenueForm from '../../components/partner/AddVenueForm';
 import PartnerBookings from '../../components/partner/PartnerBookings';
-import BookingApprovals from '../../components/partner/BookingApprovals';
 import CreateBooking from '../../components/partner/CreateBooking';
 import PartnerWallet from '../../components/partner/PartnerWallet';
 import PartnerPayouts from '../../components/partner/PartnerPayouts';
@@ -42,7 +40,6 @@ const navGroups = [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'venues',    label: 'Venues',    icon: MapPin,     badge: 'venues' },
       { id: 'bookings',  label: 'Bookings',  icon: Calendar,   badge: 'bookings' },
-      { id: 'approvals', label: 'Approvals', icon: Bell,       badge: 'approvals' },
       { id: 'slots',     label: 'Slots',     icon: Clock },
     ],
   },
@@ -77,7 +74,6 @@ export default function PartnerDashboard() {
   const [tab, setTab] = useState('dashboard');
   const [showAddForm, setShowAddForm] = useState(false);
   const [showCreateBooking, setShowCreateBooking] = useState(false);
-  const [showNotif, setShowNotif] = useState(false);
   const [settingsSection, setSettingsSection] = useState('general');
 
   const switchTab = (id, section) => {
@@ -86,18 +82,6 @@ export default function PartnerDashboard() {
     setShowCreateBooking(false);
     if (id === 'settings' && section) setSettingsSection(section);
   };
-
-  const notifRef = useRef(null);
-
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setShowNotif(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
 
   const fetchDashboard = () => {
     if (!token) return Promise.resolve();
@@ -132,7 +116,6 @@ export default function PartnerDashboard() {
     if (!data) return null;
     if (id === 'venues')    return data.turfs?.length || null;
     if (id === 'bookings')  return data.upcomingBookings?.length || null;
-    if (id === 'approvals') return data.pendingApprovals?.length || null;
     return null;
   };
 
@@ -210,8 +193,6 @@ export default function PartnerDashboard() {
                 const Icon = item.icon;
                 const active = tab === item.id;
                 const badge = item.badge ? getBadgeCount(item.badge) : null;
-                const badgeBg = item.id === 'approvals' ? '#E8526A' : '#3A5C3D';
-                const badgeText = item.id === 'approvals' ? '#fff' : ACCENT;
                 return (
                   <div
                     key={item.id}
@@ -233,8 +214,8 @@ export default function PartnerDashboard() {
                     </div>
                     {badge > 0 && (
                       <span style={{
-                        background: badgeBg,
-                        color: badgeText,
+                        background: '#3A5C3D',
+                        color: ACCENT,
                         fontSize: '0.72rem', fontWeight: '800',
                         padding: '2px 8px', borderRadius: '20px', minWidth: '22px', textAlign: 'center',
                       }}>{badge}</span>
@@ -282,79 +263,6 @@ export default function PartnerDashboard() {
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-            <ThemeToggle />
-            {/* Bell — notification dropdown */}
-            <div style={{ position: 'relative' }} ref={notifRef}>
-              <div
-                onClick={() => setShowNotif(v => !v)}
-                style={{ position: 'relative', cursor: 'pointer', color: '#6B7280', width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: showNotif ? '#F3F4F6' : 'transparent', transition: '0.2s' }}
-              >
-                <Bell size={20} />
-                {data?.notificationCount > 0 && (
-                  <div style={{ position: 'absolute', top: '0px', right: '0px', width: '16px', height: '16px', background: '#ef4444', borderRadius: '50%', fontSize: '9px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800' }}>
-                    {data.notificationCount > 9 ? '9+' : data.notificationCount}
-                  </div>
-                )}
-              </div>
-
-              {showNotif && (
-                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: '320px', background: 'white', borderRadius: '16px', boxShadow: '0 12px 48px rgba(0,0,0,0.15)', border: '1.5px solid #E9EDE8', zIndex: 999 }}>
-                  <div style={{ padding: '1rem 1.2rem', borderBottom: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: '800', fontSize: '0.95rem', color: '#111827' }}>Notifications</span>
-                    {data?.notificationCount > 0 && (
-                      <span style={{ fontSize: '0.72rem', fontWeight: '700', background: '#FEF3C7', color: '#92400E', padding: '2px 8px', borderRadius: '20px' }}>
-                        {data.notificationCount} pending
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Pending approvals list */}
-                  {data?.pendingApprovals?.length > 0 ? (
-                    <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
-                      {data.pendingApprovals.slice(0, 5).map((b, i) => (
-                        <div
-                          key={b._id || i}
-                          onClick={() => { switchTab('approvals'); setShowNotif(false); }}
-                          style={{ padding: '0.9rem 1.2rem', display: 'flex', gap: '10px', alignItems: 'flex-start', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', transition: '0.15s' }}
-                          onMouseEnter={e => e.currentTarget.style.background = '#F9FAFB'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b', flexShrink: 0, marginTop: '5px' }} />
-                          <div>
-                            <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#111827' }}>
-                              New booking request
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: '2px' }}>
-                              {b.user_id?.name || 'A player'} · {b.turf_id?.name || 'Venue'} · {b.date}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ padding: '2rem', textAlign: 'center', color: '#9CA3AF', fontSize: '0.85rem', fontWeight: '600' }}>
-                      <Bell size={28} style={{ margin: '0 auto 8px', display: 'block', opacity: 0.3 }} />
-                      No new notifications
-                    </div>
-                  )}
-
-                  <div style={{ padding: '0.75rem 1.2rem', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between' }}>
-                    <button
-                      onClick={() => { switchTab('approvals'); setShowNotif(false); }}
-                      style={{ background: 'none', border: 'none', color: '#084734', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer' }}
-                    >
-                      View all approvals →
-                    </button>
-                    <button
-                      onClick={() => setShowNotif(false)}
-                      style={{ background: 'none', border: 'none', color: '#9CA3AF', fontWeight: '600', fontSize: '0.82rem', cursor: 'pointer' }}
-                    >
-                      Dismiss
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
             {/* User */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ textAlign: 'right' }}>
@@ -471,8 +379,8 @@ export default function PartnerDashboard() {
                 </div>
               </div>
 
-              {/* MY VENUES + PENDING APPROVALS + RECENT ACTIVITY */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem' }}>
+              {/* MY VENUES + RECENT ACTIVITY */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
 
                 {/* My Venues */}
                 <div style={{ background: '#fff', borderRadius: '16px', padding: '1.5rem', border: '1px solid #E9EDE8' }}>
@@ -501,39 +409,6 @@ export default function PartnerDashboard() {
                     onClick={() => { setShowAddForm(true); setTab('venues'); }}
                     style={{ marginTop: '1rem', padding: '10px', borderRadius: '10px', border: '1.5px dashed #D1FAE5', textAlign: 'center', cursor: 'pointer', color: '#4A7C2F', fontWeight: '700', fontSize: '0.85rem', background: '#F0FDF4' }}
                   >+ Add New Venue</div>
-                </div>
-
-                {/* Pending Approvals */}
-                <div style={{ background: '#fff', borderRadius: '16px', padding: '1.5rem', border: '1px solid #E9EDE8' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-                    <h3 style={{ fontWeight: '800', fontSize: '1rem', color: '#0D1F0F', margin: 0 }}>Pending Approvals</h3>
-                    {data.pendingApprovals?.length > 0 && (
-                      <span style={{ background: '#FEF3C7', color: '#92400E', fontSize: '0.72rem', fontWeight: '700', padding: '3px 8px', borderRadius: '20px' }}>
-                        {data.pendingApprovals.length} pending
-                      </span>
-                    )}
-                  </div>
-                  {data.pendingApprovals?.length > 0 ? data.pendingApprovals.slice(0, 4).map((b, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: i < 3 ? '1px solid #F3F4F6' : 'none' }}>
-                      <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#E8F5D0', color: '#4A7C2F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '0.85rem', flexShrink: 0 }}>
-                        {(b.user_id?.name || 'U').charAt(0).toUpperCase()}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: '700', fontSize: '0.82rem', color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.user_id?.name}</div>
-                        <div style={{ fontSize: '0.72rem', color: '#9CA3AF' }}>{b.turf_id?.sport} · {Array.isArray(b.time_slots) ? b.time_slots[0] : b.time_slot} · {b.turf_id?.name}</div>
-                      </div>
-                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                        <button onClick={() => switchTab('approvals')} style={{ width: '28px', height: '28px', borderRadius: '7px', background: ACCENT_DARK, color: ACCENT, border: 'none', cursor: 'pointer', fontWeight: '800', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Check size={16} />
-                        </button>
-                        <button onClick={() => switchTab('approvals')} style={{ width: '28px', height: '28px', borderRadius: '7px', background: '#FEE2E2', color: '#DC2626', border: 'none', cursor: 'pointer', fontWeight: '800', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <X size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  )) : (
-                    <div style={{ textAlign: 'center', padding: '1.5rem', color: '#9CA3AF', fontSize: '0.85rem' }}>No pending approvals</div>
-                  )}
                 </div>
 
                 {/* Recent Activity */}
@@ -571,7 +446,6 @@ export default function PartnerDashboard() {
           {tab === 'bookings' && !showCreateBooking && (
             <PartnerBookings data={data} onCreateClick={() => setShowCreateBooking(true)} token={token} />
           )}
-          {tab === 'approvals' && <BookingApprovals />}
           {showCreateBooking && (
             <CreateBooking turfs={data?.turfs} onCancel={() => setShowCreateBooking(false)} onComplete={() => { setShowCreateBooking(false); fetchDashboard(); }} />
           )}
