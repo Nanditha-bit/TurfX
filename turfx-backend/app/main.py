@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException, RequestValidationError
 
 from app.config import settings
-from app.database import run_migrations
+from app.database import run_migrations, get_db
 from app.routers import (
     auth, turfs, bookings, reviews,
     owner, admin, slots, offers,
