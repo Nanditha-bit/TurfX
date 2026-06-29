@@ -1,14 +1,13 @@
 import axios from 'axios';
 
-// Public ngrok tunnel — works anywhere, no WiFi restriction
-export const API_URL = 'https://attest-curve-femur.ngrok-free.dev/api';
+// Production backend (Render) — works anywhere, no local PC needed
+export const API_URL = 'https://turfx.metaqode.co.in/api';
 
 const API = axios.create({
   baseURL: API_URL,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true',
   },
 });
 
