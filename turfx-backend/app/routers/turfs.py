@@ -128,6 +128,9 @@ def get_turf(turf_id: str):
 # ── POST /api/turfs ───────────────────────────────────────────────────────────
 @router.post("")
 def create_turf(body: CreateTurfRequest, user=Depends(OWNER_OR_ADMIN)):
+    print("📝 CREATE TURF CALLED")
+    print("👤 User:", user)
+    print("📋 Request body:", body.dict())
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -152,6 +155,7 @@ def create_turf(body: CreateTurfRequest, user=Depends(OWNER_OR_ADMIN)):
                 ),
             )
             turf = cur.fetchone()
+    print("✅ Turf created:", turf)
     return fmt_turf(dict(turf))
 
 
