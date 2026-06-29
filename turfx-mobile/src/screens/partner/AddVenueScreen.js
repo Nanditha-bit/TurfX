@@ -160,11 +160,16 @@ export default function AddVenueScreen({ navigation }) {
 
   const handleNext   = () => { if (validateStep()) setStep(s => s + 1); };
   const handleSubmit = async () => {
+    console.log('📝 AddVenueScreen: handleSubmit called');
     if (!token) {
+      console.log('❌ AddVenueScreen: No token found');
       Alert.alert('Error', 'You are not logged in. Please log in again.');
       navigation.replace('Login');
       return;
     }
+
+    console.log('✅ AddVenueScreen: Token found');
+    console.log('📋 Form data:', form);
 
     setSubmitting(true);
     try {
@@ -172,18 +177,29 @@ export default function AddVenueScreen({ navigation }) {
       const images = form.images.map(img => img.url);
       const videos = form.videos.map(vid => vid.url);
       
-      await axios.post(`${API}/turfs`, {
+      const requestBody = {
         name:form.name, location:form.location, city:form.city, state:form.state,
         pincode:form.pincode, price_per_hour:parseFloat(form.price),
         sport, sports:form.sports, type:form.type,
         venueSize:form.venueSize, surfaceType:form.surfaceType,
         bookingType:form.bookingType, description:form.description,
         shortDescription:form.shortDescription, amenities:form.amenities, images, videos,
-      }, { headers:{ Authorization:`Bearer ${token}` } });
+      };
+      
+      console.log('📤 Request body:', requestBody);
+      console.log('🔗 API URL:', `${API}/turfs`);
+      
+      const response = await axios.post(`${API}/turfs`, requestBody, { headers:{ Authorization:`Bearer ${token}` } });
+      
+      console.log('✅ Venue added successfully! Response:', response.data);
+      
       Alert.alert('✅ Venue Added', `"${form.name}" submitted successfully!`, [
         { text:'Go to Venues', onPress:()=>navigation.replace('PartnerApp') },
       ]);
     } catch (e) {
+      console.log('❌ Error adding venue:', e);
+      console.log('❌ Error response:', e.response);
+      
       const status = e.response?.status;
       const msg = e.response?.data?.msg || 'Failed to submit venue.';
       if (status === 403) {
