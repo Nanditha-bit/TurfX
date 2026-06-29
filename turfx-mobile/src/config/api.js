@@ -1,13 +1,15 @@
 import axios from 'axios';
 
-// Local backend — phone and PC must be on the same WiFi
-// Updated IP: 192.168.1.26
-export const API_URL = 'http://192.168.1.26:5000/api';
+// Public ngrok tunnel — works anywhere, no WiFi restriction
+export const API_URL = 'https://attest-curve-femur.ngrok-free.dev/api';
 
 const API = axios.create({
   baseURL: API_URL,
   timeout: 15000,
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
+  },
 });
 
 export default API;

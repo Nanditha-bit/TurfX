@@ -63,6 +63,7 @@ origins = [
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
     "http://127.0.0.1:3002",
+    "https://attest-curve-femur.ngrok-free.dev",
 ]
 
 app.add_middleware(
